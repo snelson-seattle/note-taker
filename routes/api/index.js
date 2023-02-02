@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const fs = require("fs");
 const path = require("path");
+const uuid = require("uuid");
 
 router.get("/notes", (req, res) => {
   fs.readFile(
@@ -8,7 +9,7 @@ router.get("/notes", (req, res) => {
     "utf-8",
     (error, data) => {
       if (error) {
-        res.status(500).json({ error: error });
+        res.status(500).json(error);
       } else {
         const notes = JSON.parse(data);
         res.status(200).json(notes);
@@ -18,7 +19,43 @@ router.get("/notes", (req, res) => {
 });
 
 router.post("/notes", (req, res) => {
-  res.status(201).json({ message: "success" });
+  if (!req.body.title || !req.body.text) {
+    res
+      .status(400)
+      .json({
+        message: "Request body must contain a 'title' and 'text' field",
+      });
+  } else {
+    fs.readFile(
+      path.join(__dirname, "../../db/db.json"),
+      "utf-8",
+      (error, data) => {
+        if (error) {
+          res.status(500).json(error);
+        } else {
+          const notes = JSON.parse(data);
+          const { title, text } = req.body;
+          const newNote = {
+            id: uuid.v4(),
+            title,
+            text,
+          };
+          notes.push(newNote);
+          fs.writeFile(
+            path.join(__dirname, "../../db/db.json"),
+            JSON.stringify(notes),
+            (error, data) => {
+              if (error) {
+                res.status(500).json(error);
+              } else {
+                res.status(201).json(newNote);
+              }
+            }
+          );
+        }
+      }
+    );
+  }
 });
 
 module.exports = router;
