@@ -1,5 +1,9 @@
 const router = require("express").Router();
 const path = require("path");
+const apiRoutes = require("./api");
+
+// Add routing for API routes
+router.use("/api", apiRoutes);
 
 router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
