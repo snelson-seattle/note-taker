@@ -58,4 +58,28 @@ router.post("/notes", (req, res) => {
   }
 });
 
+router.delete("/notes/:id", (req, res) => {
+  const noteId = req.params.id;
+
+  if(!noteId) {
+    res.status(400).json({message: "You must include a note id in the request"});
+  }
+
+  fs.readFile(path.join(__dirname, "../../db/db.json"), "utf-8", (error, data) => {
+    if(error) {
+      res.status(500).json(error);
+    }else {
+      const notes = JSON.parse(data);
+      const newNotes = notes.filter(note => note.id !== noteId);
+      fs.writeFile(path.join(__dirname, "../../db/db.json"), JSON.stringify(newNotes), (error, data) => {
+        if(error) {
+          res.status(500).json(error);
+        }else {
+          res.status(200).json({message: `Successfully deleted the note with id:${noteId}`});
+        }
+      })
+    }
+  })
+});
+
 module.exports = router;
